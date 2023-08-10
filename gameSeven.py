@@ -42,8 +42,6 @@ class TrackGui(gui.Table):
         freezeButton.connect(gui.CLICK, self.stopCars)
         self.td(freezeButton)
 
-        # self.td( gui.Label("         New demo (1-3).", color=THECOLORS["green"]))
-
     def stopCars(self):
         carTrack.stopCars()
 
@@ -150,8 +148,6 @@ class CarTrack:
         force_of_car_N = (self.gravity_mps2 * car.m_kg) + (car.tetherForce_N + car.dragForce_N)
         
         a_mps2 = force_of_car_N/car.m_kg
-        # if car.name == 1:
-        #             print("carTop: {:1} carSelect: {:1} ").format(self.gravity_mps2, a_mps2) 
         f_v_mps = car.v_mps + (a_mps2 * dt_s)
         
         car.center_x_m += (f_v_mps + car.v_mps)/2.0 * dt_s
@@ -261,10 +257,6 @@ class Client:
                                '2':{'spring_k': 13.3 , 'drag_cd':1.3},
                                '3':{'spring_k': 6666.6 , 'drag_cd': 133.3}
                                }
-        # self.tetherSettings = {'1':{'spring_k': 60.0, 'drag_cd': 2.0},
-        #                        '2':{'spring_k': 2.0 , 'drag_cd':.2},
-        #                        '3':{'spring_k': 1000.0 , 'drag_cd': 20.0}
-        #                        }
 
     def getMousePos(self):
         self.mousePosition = [self.mouseX, self.mouseY] = pygame.mouse.get_pos()
@@ -272,14 +264,7 @@ class Client:
         self.mouseY_m = eventConversion.m_from_px(self.mouseY)
     
     def calc_tether_forces_on_cars(self):
-        # for car in carTrack.cars:
         self.getMousePos()
-        # carLeft_px = car.rect.centerx - car.width_px/2
-        # carRight_px = carLeft_px + car.width_px
-        # carTop_px = screen.height_px - car.height_px
-        # carBottom_px = carTop_px + car.height_px
-        # if car.name == 1:
-        #     print("carTop: {:2} ").format(carBottom) 
         if(self.carSelected == None):
             if(self.mouseButtonPressed == True):
                 self.carSelected = carTrack.checkMousePosistion(self.mouseX, self.mouseY)
@@ -288,17 +273,7 @@ class Client:
                 self.carSelected.carSelected = False
                 self.carSelected = None
             else:
-                # print("yes")
                 mouseDisplacement = self.mouseX_m - self.carSelected.center_x_m 
-                # if(self.mouseButton == 1): 
-                #     tetherCoefficient = 3000.0
-                #     dragCoefficient = 500.0
-                # if(self.mouseButton == 2):
-                #     tetherCoefficient = 600.0
-                #     dragCoefficient = 60.0
-                # if(self.mouseButton == 3): 
-                #     tetherCoefficient = 100000.0
-                #     dragCoefficient = 4000.0
 
                 self.carSelected.tetherForce_N += self.tetherSettings[str(self.mouseButton)]['spring_k'] * mouseDisplacement
                 self.carSelected.dragForce_N += -self.tetherSettings[str(self.mouseButton)]['drag_cd'] * self.carSelected.v_mps
@@ -306,8 +281,6 @@ class Client:
 
     def drawTetherLine(self):
         carMiddle_px = [self.carSelected.rect.centerx, self.carSelected.top_px + self.carSelected.height_px/2]
-        # if(car.name == 1):
-        #         print("carMid: {:2} mousePo : {:2}").format(carMiddle_px, self.mousePosition) 
         pygame.draw.line(screen.gameScreen, THECOLORS['green'], carMiddle_px, [self.mouseX,self.mouseY])
 
 
@@ -334,7 +307,6 @@ def main():
     userDone = False
 
     while not userDone:
-        
         userInput = eventConversion.userInput()
         if(userInput == 'quit'):
             userDone = True
@@ -344,34 +316,19 @@ def main():
             carTrack.carMode(2)
         elif(userInput == 3):
             carTrack.carMode(3)
-        # elif(userInput == 's'):
-        #     carTrack.fixCarStickiness = not carTrack.fixCarStickiness
-        #     carTrack.fixWallStickiness = not carTrack.fixWallStickiness
-        # elif(userInput == 'c'):
-        #     carTrack.collisionColorSwitch = not carTrack.collisionColorSwitch
 
         dt_s = clock.tick(fps) * 1e-3
-        # print(carTrack.gravity_mps2)
         eventConversion.guiControls.query()
         if dt_s < .10:
             for clientName in eventConversion.clients:
                 eventConversion.clients[clientName].calc_tether_forces_on_cars()
-            # client.calc_tether_forces_on_cars()
             while(dt_s > 0.0):
                 deltaTime_s = min(dt_s, 1/fps)
                 dt_s -= deltaTime_s
                 for car in carTrack.cars:
-                    
-                    # if(car.name == 2):
-                    #     print("test: {:2} ").format(client.tetherForce) 
                     carTrack.moveCar(car, deltaTime_s)
-            # for car in carTrack.cars:
                     
-            #         # if(car.name == 2):
-            #         #     print("test: {:2} ").format(client.tetherForce) 
-            #         carTrack.moveCar(car, deltaTime_s)           
             carTrack.checkCollision()        
-            # print("collisionCount: {:2} SC: {} collisionColorSwtich: {}").format(carTrack.collisionCount, carTrack.fixWallStickiness, carTrack.collisionColorSwitch) 
             
             for car in carTrack.cars:
                 car.drawCar()

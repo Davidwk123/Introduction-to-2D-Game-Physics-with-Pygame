@@ -112,10 +112,8 @@ class CarTrack:
                         nextCar.color = carColor
                     (car.v_mps, nextCar.v_mps) = self.carCollisionFormula(car, nextCar)
                     self.collisionCount += 1
-                    # print("relative_v_mps: {:3.3f} car_v_mps: {:3.3f} nextCar_v: {:3.3f}").format(abs(car.v_mps - nextCar.v_mps), car.v_mps, nextCar.v_mps)
                          
     def carCollisionFormula(self, car, nextCar, CR=None):
-        # print("nextCar_v_mps: {:4.1f} nextCar_m_kg: {:3.1f} car_m_kg: {:3.1f}").format(nextCar.v_mps, nextCar.m_kg, car.m_kg)
         if(CR == None):
             CR = self.cr 
         car_f_v_mps = (CR * nextCar.m_kg * (nextCar.v_mps - car.v_mps) 

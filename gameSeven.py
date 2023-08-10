@@ -1,6 +1,8 @@
 import pygame
 from pygame.color import THECOLORS
 
+from pgu import gui
+
 class GameScreen:
     def __init__(self, width_px, height_px):
         self.width_px = width_px
@@ -19,12 +21,45 @@ class GameScreen:
         pygame.display.flip()
         self.gameScreen.fill(THECOLORS['black'])
 
+class TrackGui(gui.Table):
+    def __init__(self, **params):
+        gui.Table.__init__(self, **params)
+
+        textColor = THECOLORS['yellow']
+
+        self.tr
+        self.td(gui.Label(" Color Transfer (c): ", color=textColor), allign=1)
+        self.td(gui.Switch(value=False, name='colorTransfer'))
+
+        self.td(gui.Label("     Stickiness Correction (s): ", color=textColor), allign=1)
+        self.td(gui.Switch(value=True, name='stickinessCorrection'))
+
+        self.td(gui.Label("     Gravity (g): ", color=textColor), allign=1)
+        self.td(gui.HSlider(0, -20, 20, size=20, width=100, height=16, name='gravityFactor'))
+        
+        self.td(gui.Label("     Freeze (f): ", color=textColor))
+        freezeButton = gui.Button("v=0")
+        freezeButton.connect(gui.CLICK, self.stopCars)
+        self.td(freezeButton)
+
+        # self.td( gui.Label("         New demo (1-3).", color=THECOLORS["green"]))
+
+    def stopCars(self):
+        carTrack.stopCars()
+
+    def query(self):
+        carTrack.collisionColorSwitch = guiForm['colorTransfer'].value
+        carTrack.fixCarStickiness = guiForm['stickinessCorrection'].value
+        carTrack.fixWallStickiness = carTrack.fixCarStickiness
+        carTrack.gravity_mps2 = carTrack.bGravity_mps2 * (guiForm['gravityFactor'].value/13.34)
+
 class EventConversion:
     def __init__(self, screen_width_px, length_m = 10):
         self.screen_width_px = screen_width_px
         self.m_to_px = screen_width_px/length_m
         self.px_to_m = float(length_m)/screen_width_px
         self.clients = {'local': Client()}
+        self.guiControls = None
 
     def px_from_m(self, x_m):
         return int(round(x_m * self.m_to_px))
@@ -46,9 +81,17 @@ class EventConversion:
                 elif event.key == pygame.K_3:
                     return 3
                 elif event.key == pygame.K_s:
-                    return 's'
+                    guiForm['stickinessCorrection'].value = not guiForm['stickinessCorrection'].value
                 elif event.key == pygame.K_c:
-                    return 'c'
+                    guiForm['colorTransfer'].value = not guiForm['colorTransfer'].value
+                elif event.key == pygame.K_g:
+                    carTrack.gravityToggle = not carTrack.gravityToggle
+                    if carTrack.gravityToggle:
+                        guiForm['gravityFactor'].value = -13.0
+                    else:
+                        guiForm['gravityFactor'].value = 0.0
+                elif event.key == pygame.K_F2:
+                    carTrack.gui = not carTrack.gui
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 self.clients['local'].mouseButtonPressed = True
                 (mouse1, mouse2, mouse3) = pygame.mouse.get_pressed()
@@ -59,7 +102,9 @@ class EventConversion:
             elif event.type == pygame.MOUSEBUTTONUP:
                 self.clients['local'].mouseButtonPressed = False
                 self.clients['local'].mouseButton = -1
-        
+
+            guiApplication.event(event)
+
 class Car:
     def __init__(self, color = THECOLORS['white'], left_px = 10, width_px = 26, v_mps = 6.6):
         self.color = color
@@ -88,15 +133,18 @@ class Car:
         pygame.draw.rect(screen.gameScreen, self.color, self.rect)
 
 class CarTrack:
-    def __init__(self, gravity_mps2 = 9.8/3.0, collisionR = 1.0):
+    def __init__(self, collisionR = 1.0):
         self.cars = []
-        self.gravity_mps2 = gravity_mps2
+        self.gravity_mps2 = 0.0
+        self.bGravity_mps2 = 9.8/6.0
+        self.gravityToggle = False
         self.cr = collisionR
         self.fixCarStickiness = True
         self.fixWallStickiness = True
         self.collisionColorSwitch = False
         self.collisionCount = 0
         self.carCount = 0
+        self.gui = True
         
     def moveCar(self, car, dt_s):
         force_of_car_N = (self.gravity_mps2 * car.m_kg) + (car.tetherForce_N + car.dragForce_N)
@@ -110,6 +158,10 @@ class CarTrack:
         car.v_mps = f_v_mps
         car.tetherForce_N = 0.0
         car.dragForce_N = 0.0
+
+    def stopCars(self):
+        for car in self.cars:
+            car.v_mps = 0.0
 
     def checkMousePosistion(self, mouseX, mouseY):
         for car in self.cars:
@@ -184,17 +236,17 @@ class CarTrack:
         self.carCount = 0
         self.collisionCount = 0
         if(mode == 1):
-            self.gravity_mps2 = 0.0
+            guiForm['gravityFactor'].value = 0.0
             self.cr = 1.0
             self.cars.append(Car(THECOLORS['green'], left_px=0, v_mps=1.3))
             # self.cars.append(Car(THECOLORS['red'], left_px=774, v_mps=-4.0))
         elif(mode == 2):
-            self.gravity_mps2 = 0.0
+            guiForm['gravityFactor'].value = -12.67
             self.cr = 1.0
             self.cars.append(Car(THECOLORS['green'], left_px=0, v_mps=-.5))
             self.cars.append(Car(THECOLORS['orange'], left_px=100, width_px=100, v_mps=5.0))  
         elif(mode == 3):
-            self.gravity_mps2 = 9.8/3.0
+            guiForm['gravityFactor'].value = 6.67
             self.cr = 0.7
             self.cars.append(Car(THECOLORS['yellow'], left_px= 240, width_px= 26, v_mps=-.6))
             self.cars.append(Car(THECOLORS['red'], left_px=440,width_px= 50, v_mps=-.5)) 
@@ -260,7 +312,7 @@ class Client:
 
 
 def main():
-    global screen, eventConversion, carTrack
+    global screen, eventConversion, carTrack, guiForm, guiApplication
 
     pygame.init()
 
@@ -270,12 +322,19 @@ def main():
     eventConversion = EventConversion(width_px, 10.0)
     screen = GameScreen(width_px, height_px)
     carTrack = CarTrack(collisionR=1.0)
+    guiForm = gui.Form()
+    eventConversion.guiControls = TrackGui()
+    guiContainer = gui.Container(align=-1, valign=-1)
+    guiContainer.add(eventConversion.guiControls, 0, 0)
+    guiApplication = gui.App()
+    guiApplication.init(guiContainer)
     carTrack.carMode(1)
     clock = pygame.time.Clock()
     fps = 60.0
     userDone = False
 
     while not userDone:
+        
         userInput = eventConversion.userInput()
         if(userInput == 'quit'):
             userDone = True
@@ -285,39 +344,43 @@ def main():
             carTrack.carMode(2)
         elif(userInput == 3):
             carTrack.carMode(3)
-        elif(userInput == 's'):
-            carTrack.fixCarStickiness = not carTrack.fixCarStickiness
-            carTrack.fixWallStickiness = not carTrack.fixWallStickiness
-        elif(userInput == 'c'):
-            carTrack.collisionColorSwitch = not carTrack.collisionColorSwitch
+        # elif(userInput == 's'):
+        #     carTrack.fixCarStickiness = not carTrack.fixCarStickiness
+        #     carTrack.fixWallStickiness = not carTrack.fixWallStickiness
+        # elif(userInput == 'c'):
+        #     carTrack.collisionColorSwitch = not carTrack.collisionColorSwitch
 
         dt_s = clock.tick(fps) * 1e-3
-        for clientName in eventConversion.clients:
-            eventConversion.clients[clientName].calc_tether_forces_on_cars()
-        # client.calc_tether_forces_on_cars()
-        while(dt_s > 0.0):
-            deltaTime_s = min(dt_s, 1/fps)
-            dt_s -= deltaTime_s
+        # print(carTrack.gravity_mps2)
+        eventConversion.guiControls.query()
+        if dt_s < .10:
+            for clientName in eventConversion.clients:
+                eventConversion.clients[clientName].calc_tether_forces_on_cars()
+            # client.calc_tether_forces_on_cars()
+            while(dt_s > 0.0):
+                deltaTime_s = min(dt_s, 1/fps)
+                dt_s -= deltaTime_s
+                for car in carTrack.cars:
+                    
+                    # if(car.name == 2):
+                    #     print("test: {:2} ").format(client.tetherForce) 
+                    carTrack.moveCar(car, deltaTime_s)
+            # for car in carTrack.cars:
+                    
+            #         # if(car.name == 2):
+            #         #     print("test: {:2} ").format(client.tetherForce) 
+            #         carTrack.moveCar(car, deltaTime_s)           
+            carTrack.checkCollision()        
+            # print("collisionCount: {:2} SC: {} collisionColorSwtich: {}").format(carTrack.collisionCount, carTrack.fixWallStickiness, carTrack.collisionColorSwitch) 
+            
             for car in carTrack.cars:
-                
-                # if(car.name == 2):
-                #     print("test: {:2} ").format(client.tetherForce) 
-                carTrack.moveCar(car, deltaTime_s)
-        # for car in carTrack.cars:
-                
-        #         # if(car.name == 2):
-        #         #     print("test: {:2} ").format(client.tetherForce) 
-        #         carTrack.moveCar(car, deltaTime_s)           
-        carTrack.checkCollision()        
-        # print("collisionCount: {:2} SC: {} collisionColorSwtich: {}").format(carTrack.collisionCount, carTrack.fixWallStickiness, carTrack.collisionColorSwitch) 
-        
-        for car in carTrack.cars:
-            car.drawCar()
+                car.drawCar()
 
-        for clientName in eventConversion.clients:
-            if(eventConversion.clients[clientName].carSelected != None):
-                eventConversion.clients[clientName].drawTetherLine()
-        
-        screen.drawRefresh()
-        
+            for clientName in eventConversion.clients:
+                if(eventConversion.clients[clientName].carSelected != None):
+                    eventConversion.clients[clientName].drawTetherLine()
+            if(carTrack.gui == True):
+                guiApplication.paint()
+            screen.drawRefresh()
+            
 main()

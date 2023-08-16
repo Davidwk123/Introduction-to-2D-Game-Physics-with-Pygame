@@ -1,5 +1,6 @@
 import pygame
 from pygame.color import THECOLORS
+from os import environ
 
 from pgu import gui
 
@@ -472,6 +473,7 @@ class Client:
 def main():
     global screen, eventConversion, carTrack, guiForm, guiApplication
 
+    environ['SDL_VIDEO_CENTERED'] = '1'
     pygame.init()
 
     width_px = 950

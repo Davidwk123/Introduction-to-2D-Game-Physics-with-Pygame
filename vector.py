@@ -81,10 +81,29 @@ class Vector:
     def set_magnitude(self, length):
         self.unitVector() * length
 
-    def rotate(self, degree):
+    def rotate(self, degree, sameVector = False):
         x = self.x * math.cos(math.radians(degree)) - self.y * math.sin(math.radians(degree))
         y = self.x * math.sin(math.radians(degree)) + self.y * math.cos(math.radians(degree))
-        return Vector(x, y)
+        if(sameVector == True):
+            self.x = x
+            self.y = x
+            return self
+        else:
+            return Vector(x, y)
+    
+    def setAngle(self, degree):
+        self = Vector(self.length(), 0)
+        return self.rotate(degree)
+    
+    def getDegree(self):
+        if (self.lengthSquared() == 0):
+            return 0
+        return math.degrees(math.atan2(self.y, self.x))
+    
+    def getAngleBetween(self, vector):
+        cross = self.x*vector.y - self.y*vector.x 
+        dot = self.x*vector.x + self.y*vector.y
+        return math.degrees(math.atan2(cross, dot))
     
     def rotate90(self):
         x = self.x * math.cos(math.radians(90)) - self.y * math.sin(math.radians(90))

@@ -1,9 +1,19 @@
+# vector.py
+# David Welch Keliihoomalu
+# 9/3/2023
+
+# Vector class based off the The Vector Class Module assignment: https://pet.timetocode.org/
+
 import math
 
 class Vector:
-    def __init__(self, x, y):
-        self.x = float(x)
-        self.y = float(y)
+    def __init__(self, x, y, int_flag = "not_int"):
+        if(int_flag == "int"):
+            self.x = int(round(x))
+            self.y = int(round(y))
+        else:
+            self.x = float(x)
+            self.y = float(y)
 
     def __str__(self):
         return "Vector({}, {})".format(self.x, self.y)
@@ -39,13 +49,13 @@ class Vector:
         return Vector(x, y)
     
     def __div__(self, r):
-        x = r / self.x
-        y = r / self.y 
+        x = self.x / r
+        y = self.y / r 
         return Vector(x, y)
     
     def divisionFactor(self, r):
-        x = r / self.x
-        y = r / self.y 
+        x = self.x / r
+        y = self.y / r 
         return Vector(x, y)
 
     def equal(self, vector):
@@ -66,20 +76,23 @@ class Vector:
         b = Vector(vector.x, vector.y)
         a_times_b = (self.dotProduct(a, b))
         b_times_b = self.dotProduct(b, b)
-        r_factor = (a_times_b/b_times_b)
-        return b * r_factor
+        if(b_times_b > 0):
+            r_factor = (a_times_b/b_times_b)
+            return b * r_factor
+        else:
+            return self * 0
     
     def length(self):
-        return (self.x**2 + self.y**2)**0.5
+        return (self.x*self.x + self.y*self.y)**0.5
     
     def lengthSquared(self):
-        return (self.x**2 + self.y**2)
+        return (self.x*self.x + self.y*self.y)
     
     def unitVector(self):
         return self/self.length()
     
     def set_magnitude(self, length):
-        self.unitVector() * length
+        return self.unitVector() * length
 
     def rotate(self, degree, sameVector = False):
         x = self.x * math.cos(math.radians(degree)) - self.y * math.sin(math.radians(degree))
@@ -106,14 +119,13 @@ class Vector:
         return math.degrees(math.atan2(cross, dot))
     
     def rotate90(self):
-        x = self.x * math.cos(math.radians(90)) - self.y * math.sin(math.radians(90))
-        y = self.x * math.sin(math.radians(90)) + self.y * math.cos(math.radians(90))
-        return Vector(x, y)
+       return Vector(-self.y, self.x)
     
     def rotate180(self):
-        x = self.x * math.cos(math.radians(180)) - self.y * math.sin(math.radians(180))
-        y = self.x * math.sin(math.radians(180)) + self.y * math.cos(math.radians(180))
-        return Vector(x, y)
+        return Vector(-self.x, -self.y)
+    
+    def tuple(self):
+        return (self.x, self.y)
 
 
 
